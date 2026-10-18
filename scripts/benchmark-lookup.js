@@ -1,0 +1,20 @@
+import { performance } from 'node:perf_hooks';
+import { newId, newReference } from '../src/domain/ids.js';
+
+const BOOKINGS = 100_000;
+const LOOKUPS = 500;
+const bookings = Array.from({ length: BOOKINGS }, () => ({ id: newId(), reference: newReference() }));
+const byReference = new Map(bookings.map(booking => [booking.reference, booking]));
+const targets = Array.from({ length: LOOKUPS }, (_, i) => bookings[(i * 199) % BOOKINGS].reference);
+let found;
+let start = performance.now();
+for (const reference of targets) found = bookings.find(booking => booking.reference === reference);
+const arrayMs = performance.now() - start;
+start = performance.now();
+for (const reference of targets) found = byReference.get(reference);
+const mapMs = performance.now() - start;
+console.log('Bookings:', BOOKINGS.toLocaleString(), '| lookups:', LOOKUPS.toLocaleString());
+console.log('Array.find:', arrayMs.toFixed(3), 'ms (O(n) per lookup; O(n × k) for k lookups)');
+console.log('Map.get:    ', mapMs.toFixed(3), 'ms (O(1) average per lookup; O(k) for k lookups)');
+console.log('Map speedup:', (arrayMs / Math.max(mapMs, 0.001)).toFixed(1) + '×');
+if (!found) throw new Error('Benchmark lookup unexpectedly failed.');
