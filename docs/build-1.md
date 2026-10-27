@@ -7,13 +7,14 @@ Create core domain for ticketing system with O(1) lookup.
 
 ## Tasks Done
 - src/domain/errors.js - DomainError with code
-- src/domain/ids.js - generateId() UUID and generateShortRef() without I,O
-- src/domain/waitlistQueue.js - FIFO queue with O(1) linked list
+- src/domain/ids.js - newId() UUID and newReference() without ambiguous characters
+- src/domain/waitlistQueue.js - Queue FIFO with O(1) linked-list operations
 - src/domain/Inventory.js - Booking rules: check availability, sold_out error, cancel, waitlist
-- scripts/demo.js - Story: Summer Sounds 3 seats, Ada books 2 (ZS9PS7CD), Bayo books last seat, waitlist 2, Ada cancels, Chidi next
-- scripts/benchmark-lookup.js - Compare Array.find (1832ms) vs Map.get (0.4ms) ~4541x faster
+- scripts/demo.js - Story: Summer Sounds 3 seats, Ada books 2, Bayo books last seat, waitlist 2, Ada cancels, Chidi next
+- scripts/benchmark-lookup.js - Compare Array.find with Map.get for booking-reference lookups
 
 ## Result
-npm run demo works, npm run bench works. Ready for Build 2.
+`npm run demo` and `npm run benchmark` run successfully. Benchmark timings vary by machine.
+Ready for Build 2.
 
 ## status: Done
