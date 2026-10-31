@@ -3,6 +3,7 @@ import { realpath, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DomainError } from '../domain/errors.js';
+import { readJsonBody } from './async.mjs';
 import { createRouter } from './router.js';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -23,7 +24,10 @@ const statusByCode = new Map([
   ['NOT_FOUND', 404],
   ['INVALID_STATE', 409],
   ['INVALID_TRANSITION', 409],
-  ['SOLD_OUT', 409]
+  ['SOLD_OUT', 409],
+  ['UNAUTHORIZED', 401],
+  ['FORBIDDEN', 403],
+  ['PAYMENT_DECLINED', 402]
 ]);
 
 function sendJson(response, status, value) {
@@ -36,19 +40,6 @@ function sendError(response, error) {
   const code = knownError ? error.code : 'INTERNAL_ERROR';
   const message = knownError ? error.message : 'An unexpected server error occurred.';
   sendJson(response, statusByCode.get(code) ?? 500, { error: { code, message } });
-}
-
-async function readJsonBody(request) {
-  const contentType = request.headers['content-type'] ?? '';
-  if (!/(?:^|\/|\+)json(?:\s*;|$)/i.test(contentType)) return undefined;
-
-  const chunks = [];
-  for await (const chunk of request) chunks.push(chunk);
-  try {
-    return JSON.parse(Buffer.concat(chunks).toString('utf8'));
-  } catch {
-    throw new DomainError('INVALID_JSON', 'Request body must contain valid JSON.');
-  }
 }
 
 function isWithinDirectory(directory, candidate) {

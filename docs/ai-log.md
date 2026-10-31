@@ -18,3 +18,21 @@
 - **What I asked:** Implement the Build 3 booking state machine, layered architecture diagrams, parameterized router, Node HTTP server with health and static-file routes, JSON error handling, configuration, and tests.
 - **What came back:** Added the state machine and HTTP server layers, documented the architecture, added a public landing page and tests, and configured `npm start`.
 - **What was wrong (or "nothing"):** The repository has no `README.md` or `docs/user-stories.md`, and `docs/build-3.md` was empty, so those requested background files could not be read. The supplied Build 3 prompt was used as the specification. I added verification for malformed JSON, unknown API routes, path traversal, and all allowed and disallowed known-state transitions.
+## Build 4
+
+### Prompt 1: Build 4 REST API
+- **What I asked:** Implement the in-memory async repository, injected event and booking services, mock payment gateway, REST endpoints, API examples, and real-server API tests.
+- **What came back:** Added the service and repository layers, wired the routes into the existing HTTP server, documented the API calls, and added end-to-end coverage.
+- **What was wrong (or "nothing"):** The existing domain inventory stores booking statuses in uppercase, while the Build 3 state machine uses lowercase states. The API service uses the state machine's lowercase states directly without changing the existing Build 2 demo/inventory behavior. Tests verify declined-payment retry, ownership, cancellation transitions, and that card-number fields never reach the gateway.
+
+## Build 5
+
+### Prompt 1: SQLite persistence and overselling
+- **What I asked:** Move the API repository to SQLite with constraints, keep data across restarts, add an idempotent seed script, and reproduce the last-ticket race with 50 concurrent booking attempts.
+- **What came back:** Added a SQLite schema and repository, connected the server to a persistent database, and added seed and overselling scripts plus regression tests.
+- **What was wrong (or "nothing"):** Before the fix, the memory-backed service allowed all 50 attempts to succeed and stored 99 bookings against a capacity of 50. A JavaScript lock only coordinates code in one process and is not durable; a separate availability check and update are not atomic, so concurrent requests can both see the same seat.
+
+### Prompt 2: atomic reservation
+- **What I asked:** Reserve seats with one conditional SQL update, use its changed-row count to reject losing requests, and test that 50 requests for one remaining ticket produce one success and 49 `SOLD_OUT` results.
+- **What came back:** Seat reservation and booking insertion now run in one SQLite transaction. The post-fix demo and regression test report 1 success, 49 sold-out responses, and exactly 50 of 50 seats booked.
+- **What was wrong (or "nothing"):** The original service checked availability in JavaScript and saved the tier and booking separately, which caused overselling. Both reservation and cancellation now update their related rows transactionally; the test also verifies that cancellation cannot release the same seats twice.
