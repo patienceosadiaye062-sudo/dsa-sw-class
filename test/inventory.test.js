@@ -160,3 +160,17 @@ test('cancellation frees seats once and rejects a repeated cancellation', () => 
   assertCode('VALIDATION', () => cancelBooking(store, booking.reference));
   assert.equal(tier.booked, 2);
 });
+
+test('cancellation cannot release seats for a non-pending booking', () => {
+  const store = createStore();
+  const { tier } = createPublishedEvent(store, eventInput({ capacity: 2 }), {
+    name: 'General',
+    priceCents: 100,
+    capacity: 2
+  });
+  const booking = bookTickets(store, { tierId: tier.id, attendeeName: 'Ada', quantity: 1 });
+  booking.status = 'PAID';
+
+  assertCode('INVALID_STATE', () => cancelBooking(store, booking.reference));
+  assert.equal(tier.booked, 1);
+});

@@ -142,6 +142,9 @@ export function bookTickets(store, input) {
     totalPriceCents,
     status: 'PENDING'
   };
+  while (store.bookingsByReference.has(booking.reference)) {
+    booking.reference = newReference();
+  }
   tier.booked += quantity;
   store.bookings.set(booking.id, booking);
   store.bookingsByReference.set(booking.reference, booking);
@@ -154,7 +157,13 @@ export function cancelBooking(store, reference) {
   const booking = store.bookingsByReference.get(reference.trim().toUpperCase());
   if (!booking) throw new DomainError('NOT_FOUND', 'Booking was not found.');
   if (booking.status === 'CANCELLED') throw new DomainError('VALIDATION', 'Booking has already been cancelled.');
+  if (booking.status !== 'PENDING') {
+    throw new DomainError('INVALID_STATE', 'Only pending bookings can be cancelled.');
+  }
   const tier = store.tiers.get(booking.tierId);
+  if (!tier || tier.booked < booking.quantity) {
+    throw new Error('Booking seats could not be released consistently.');
+  }
   tier.booked -= booking.quantity;
   booking.status = 'CANCELLED';
   return booking;
@@ -175,6 +184,15 @@ export function joinWaitlist(store, input) {
   if (!event) throw new DomainError('NOT_FOUND', 'Event was not found.');
   const name = requiredText(attendeeName, 'Attendee name');
   if (!Number.isSafeInteger(quantity) || quantity < 1 || quantity > 10) throw new DomainError('VALIDATION', 'Waitlist quantity must be between 1 and 10.');
+  if (event.status !== 'published') {
+    throw new DomainError('INVALID_STATE', 'Waitlists are only open for published events.');
+  }
+  const canBookRequestedQuantity = [...event.tierIds].some(id =>
+    store.tiers.get(id).seatsLeft >= quantity
+  );
+  if (canBookRequestedQuantity) {
+    throw new DomainError('NOT_SOLD_OUT', 'Seats are available, so book them instead.');
+  }
   const entry = { id: newId(), eventId, attendeeName: name, quantity, joinedAt: new Date().toISOString() };
   event.waitlist.enqueue(entry);
   return entry;

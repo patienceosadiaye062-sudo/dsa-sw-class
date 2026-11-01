@@ -69,6 +69,7 @@ test('HTTP server serves public files and returns consistent JSON errors', async
 
 test('unexpected handler errors return a generic JSON 500 without a stack trace', async () => {
   const router = createRouter();
+  const loggedErrors = [];
   router.add('GET', '/api/failure', () => {
     throw new Error('sensitive internal details');
   });
@@ -80,5 +81,15 @@ test('unexpected handler errors return a generic JSON 500 without a stack trace'
       error: { code: 'INTERNAL_ERROR', message: 'An unexpected server error occurred.' }
     });
     assert.doesNotMatch(JSON.stringify(body), /sensitive internal details|Error:/);
-  }, { router });
+  }, {
+    router,
+    logger: {
+      error(...details) {
+        loggedErrors.push(details);
+      }
+    }
+  });
+  assert.equal(loggedErrors.length, 1);
+  assert.equal(loggedErrors[0][0], 'Unhandled request error:');
+  assert.match(loggedErrors[0][1].message, /sensitive internal details/);
 });

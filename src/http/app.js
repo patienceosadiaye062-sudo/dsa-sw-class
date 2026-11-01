@@ -87,7 +87,11 @@ async function serveStatic(request, response, publicDir, pathname) {
   response.end(request.method === 'HEAD' ? undefined : body);
 }
 
-export function createApp({ router = createRouter(), publicDir = defaultPublicDir } = {}) {
+export function createApp({
+  router = createRouter(),
+  publicDir = defaultPublicDir,
+  logger = console
+} = {}) {
   router.add('GET', '/health', () => ({ status: 200, body: { status: 'ok' } }));
 
   return createServer(async (request, response) => {
@@ -112,11 +116,11 @@ export function createApp({ router = createRouter(), publicDir = defaultPublicDi
       await serveStatic(request, response, publicDir, url.pathname);
     } catch (error) {
       if (response.headersSent) {
-        console.error('Request failed after response headers were sent:', error);
+        logger.error('Request failed after response headers were sent:', error);
         response.destroy(error);
         return;
       }
-      if (!(error instanceof DomainError)) console.error('Unhandled request error:', error);
+      if (!(error instanceof DomainError)) logger.error('Unhandled request error:', error);
       sendError(response, error);
     }
   });

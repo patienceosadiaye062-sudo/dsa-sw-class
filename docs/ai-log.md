@@ -36,3 +36,8 @@
 - **What I asked:** Reserve seats with one conditional SQL update, use its changed-row count to reject losing requests, and test that 50 requests for one remaining ticket produce one success and 49 `SOLD_OUT` results.
 - **What came back:** Seat reservation and booking insertion now run in one SQLite transaction. The post-fix demo and regression test report 1 success, 49 sold-out responses, and exactly 50 of 50 seats booked.
 - **What was wrong (or "nothing"):** The original service checked availability in JavaScript and saved the tier and booking separately, which caused overselling. Both reservation and cancellation now update their related rows transactionally; the test also verifies that cancellation cannot release the same seats twice.
+
+### Review: Builds 1–5 consistency and regression fixes
+- **What I asked:** Review the Build 1–5 milestone docs and implementation, then correct verified inconsistencies.
+- **What came back:** The review found Build 1 allowed waitlist entry before an event was published or while enough seats remained, and its in-memory inventory allowed non-pending bookings to be cancelled. The Build 3 doc referred to an obsolete test filename, the Build 1 doc used the wrong `SOLD_OUT` casing, and the Build 5 persistence test reopened SQLite without restarting the actual API server.
+- **What was wrong (or "nothing"):** Added the missing Build 1 guards and regression tests, corrected the doc references and architecture field names, and added an API process-restart test that verifies events, tiers, bookings, and payment remain usable after restart.

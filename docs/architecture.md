@@ -106,6 +106,7 @@ erDiagram
     string venue
     string date
     string status
+    integer capacity
   }
   TICKET_TIER {
     string id
@@ -113,10 +114,11 @@ erDiagram
     string name
     integer price_cents
     integer capacity
+    integer booked
   }
   BOOKING {
     string id
-    string attendee_id
+    string user_id
     string tier_id
     integer quantity
     integer total_price_cents

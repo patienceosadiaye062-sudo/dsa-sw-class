@@ -92,7 +92,7 @@ regression test.
 
 ## Definition of done
 
-The Definition of done in [`user-stories.md`](user-stories.md) applies to every
-story in this build.
+For S08, the definition of done is that the atomic seat reservation is covered
+by the concurrency test and no booking can push `booked` above tier capacity.
 
 [Build 4](build-4.md) | [Build 6](build-6.md)

@@ -14,7 +14,9 @@ HTTP server that serves `/health` and static files from `public/`.
 - `src/http/app.js` handles health checks, static files, API 404s, and JSON errors.
 - `src/config.js` reads the server port from `PORT` (default `3000`).
 - `src/server.js` starts the server; run it with `npm start`.
-- `test/build-3.test.js` covers transitions, routing, and HTTP behavior.
+- `test/bookingStateMachine.test.js`, `test/router.test.js`, and
+  `test/httpApp.test.js` cover transitions, routing, configuration, and HTTP
+  behavior.
 
 ## Done When
 
